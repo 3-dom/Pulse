@@ -1,0 +1,21 @@
+{
+    "name": "ThreeDom/data-mage",
+    "description": "Generic wrapper for SQL connections, trying to unify syntax across PHPs many drivers",
+    "type": "project",
+    "license": "Unlicense",
+    "autoload": {
+        "psr-4": {
+            "ThreeDom\\DataMage\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ThreeDom"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+      "ext-mysqli": "*",
+      "ext-odbc": "*"
+    }
+}
