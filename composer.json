@@ -1,5 +1,5 @@
 {
-    "name": "ThreeDom/data-mage",
+    "name": "threedom/data-mage",
     "description": "Generic wrapper for SQL connections, trying to unify syntax across PHPs many drivers",
     "type": "project",
     "license": "Unlicense",

@@ -68,17 +68,17 @@
 			$this->active = $this->results[$id];
 		}
 
-        /**
-         * Bulk search of the model's defined table for matching records.
-         *
-         * If an ID was not provided on the models initialization, we can
-         * instead choose to do a search later on.
-         * @param string $col The column to search for (need to conver this to the mapped column)
-         * @param mixed $val The value which is should equal
-         * @param Command $con
-         * @param array $schema
-         * @return void
-         */
+		/**
+		 * Bulk search of the model's defined table for matching records.
+		 *
+		 * If an ID was not provided on the models initialization, we can
+		 * instead choose to do a search later on.
+		 * @param string $col The column to search for (need to conver this to the mapped column)
+		 * @param mixed $val The value which is should equal
+		 * @param Command $con
+		 * @param array $schema
+		 * @return void
+		 */
 		public function with(string $col, mixed $val, Command $con, array $schema): void {
 
 			# Begin with a select statement, we don't need all the rows off the table,

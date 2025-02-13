@@ -102,11 +102,11 @@
 		 */
 		abstract public function queryMany(int $limit, int $offset=0): void;
 
-        /**
-         * Function to return records as a collection of object
-         * @param string $model
-         * @return object|null
-         */
+		/**
+		 * Function to return records as a collection of object
+		 * @param string $model
+		 * @return object|null
+		 */
 		abstract public function queryObject(string $model): ?object;
 		
 		/**
@@ -121,21 +121,21 @@
 		 */
 		abstract public function prepare(string $query, array $params): mixed;
 
-        /**
-         * Running a prepared statement and returning multiple record sets.
-         * Even more flexible prepared statement! Allows for multiple record sets.
-         * This shouldn't really be used, if you ever need to run multiple things it
-         * should be a StoredProcedure.
-         * @param string $query A string written in standard prepared statement format.
-         * @param array $params An array of parameters to prepare
-         * @return array|null This should always be the final command processed so there's no need to daisy-chain.
-         */
+		/**
+		 * Running a prepared statement and returning multiple record sets.
+		 * Even more flexible prepared statement! Allows for multiple record sets.
+		 * This shouldn't really be used, if you ever need to run multiple things it
+		 * should be a StoredProcedure.
+		 * @param string $query A string written in standard prepared statement format.
+		 * @param array $params An array of parameters to prepare
+		 * @return array|null This should always be the final command processed so there's no need to daisy-chain.
+		 */
 		abstract public function queryRaw(string $query, array $params): ?array;
 
-        /**
-         * Check connection is alive.
-         * @return bool Returns 1 if the connection is alive. Returns 0 if it's ded.
-         */
+		/**
+		 * Check connection is alive.
+		 * @return bool Returns 1 if the connection is alive. Returns 0 if it's ded.
+		 */
 		abstract public function ping(): bool;
 
 		/**

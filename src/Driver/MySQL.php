@@ -170,13 +170,13 @@
 			return $recordSets;
 		}
  /**
-         * Gets SQL parameter types from an array.
+		 * Gets SQL parameter types from an array.
 		 * 
 		 * Very simple and can have more conditions added. Simply iterates over the argument array and populates a string for binding the parameters.
-         * @param array $array The list of parameters you are using for your prepared statement.
-         * 
-         * @return string Returns the string the argument list created
-         */
+		 * @param array $array The list of parameters you are using for your prepared statement.
+		 * 
+		 * @return string Returns the string the argument list created
+		 */
 		public function paramFromArray(array $array): string {
 			$args = '';
 			foreach($array as $x) {
