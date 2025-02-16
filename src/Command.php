@@ -32,6 +32,7 @@
 		public array $repVar = [];
 		public string $query = '';
 		public string $pKey = '';
+		private array $results;
 
 		/**
 		 * Calling procedures
@@ -201,4 +202,27 @@
 			}
 			return $word;
 		}
+
+        public function getResults(): array {
+            $r = $this->results;
+            $this->results = [];
+
+            return $r;
+        }
+
+        public function getResult(mixed $id): array {
+            $r = $this->results;
+            $this->results = [];
+
+            $record = [];
+            if(array_key_exists($id, $r)) {
+                $record = $r[$id];
+            }
+
+            return $record;
+        }
+
+        public function setResults(array $r): void {
+            $this->results = $r;
+        }
 	}

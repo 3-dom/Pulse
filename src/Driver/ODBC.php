@@ -9,9 +9,6 @@
 		public mixed $con;
 		public array $results;
 		public array $reservedWord = ['user', 'group'];
-		public array $repVar = [];
-		public string $query = '';
-		public string $pKey = '';
 
 		public function __construct(string $src, string $usr, string $pas, $con = null) {
 			try {
@@ -65,12 +62,10 @@
 		}
 		
 		public function query(): void {
-			$this->results = [];
-
 			$q = $this->query;
 			$r = $this->repVar;
 
-			$this->results = $this->queryRaw($q, $r);
+			$this->setResults($this->queryRaw($q, $r));
 			$this->emptyQuery();
 		}
 
@@ -79,23 +74,19 @@
 		}
 
 		public function queryOne(): void {
-			$this->results = [];
-
 			$q = $this->query;
 			$r = $this->repVar;
 
 			$rs = $this->queryRaw($q, $r);
-			$this->results = array_slice($rs, 0, 1, true);
+			$this->setResults(array_slice($rs, 0, 1, true));
 			$this->emptyQuery();
 		}
 
 		public function queryMany(int $limit, int $offset=0): void {
-			$this->results = [];
-
 			$q = $this->query;
 			$r = $this->repVar;
 			$rs = $this->queryRaw($q, $r);
-			$this->results = array_slice($rs, $offset, $limit, true);
+            $this->setResults(array_slice($rs, $offset, $limit, true));
 
 			$this->emptyQuery();
 		}
