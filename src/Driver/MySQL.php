@@ -10,7 +10,7 @@
 	class MySQL extends Command {
 
 		public mysqli $con;
-		public array $reservedWord = ['Condition', 'Desc', 'Group', 'Database'];
+		public array $reservedWord = ['Condition', 'Desc', 'Group', 'Database', 'File'];
 
 
 		public function __construct(string $src, string $usr, string $pas, string $db, $con = null) {
