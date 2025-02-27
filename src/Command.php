@@ -5,33 +5,34 @@
 	 * This is the abstract classes all other database drivers us as a template.
 	 * When you modify an abstract function be sure to follow through to the rest of
 	 * the drivers in src/Driver
-	 * 
+	 *
 	 * DataMage uses a concept in object-oriented programming called "Daisy-Chaining"
 	 * This essentially means it almost always returns itself. This is really cool!
-	 * 
+	 *
 	 * Instead of doing the following:
-	 * 
+	 *
 	 * $con->select([Id, FirstName, LastName], 'Id');
 	 * $con->from('Customers');
 	 * $con->where('FirstName = ? AND DoB <= ?');
 	 * $con->vars('John', 2004);
 	 * $con->query();
-	 * 
+	 *
 	 * We can do THIS!
-	 * 
+	 *
 	 * $con
-	 *	->select([Id, FirstName, LastName], 'Id')
-	 * 	->from("Customers")
-	 * 	->where('FirstName = ? AND DoB <= ?')
-	 * 	->vars('John', 2004)
-	 * 	->query();
-	 * 
+	 *    ->select([Id, FirstName, LastName], 'Id')
+	 *    ->from("Customers")
+	 *    ->where('FirstName = ? AND DoB <= ?')
+	 *    ->vars('John', 2004)
+	 *    ->query();
+	 *
 	 * Much cleaner!
 	 */
-	abstract class Command {
-		public array $repVar = [];
-		public string $query = '';
-		public string $pKey = '';
+	abstract class Command
+	{
+		protected array $repVar = [];
+		protected string $query = '';
+		protected string $pKey = '';
 		private array $results;
 
 		/**
@@ -49,6 +50,30 @@
 		 * @return Command
 		 */
 		abstract public function select(array $cols, string $pKey): Command;
+
+		/**
+		 * Runs an update statement
+		 * @param string $table The table we're updating
+		 * @param array $cols An array of columns to update.
+		 * @param array vals An array of values to bind.
+		 * @return Command
+		 */
+		abstract public function update(string $cols, array $data, array $vals): Command;
+
+		/**
+		 * Beginning an insert statement
+		 * @param array $cols The columns to populate.
+		 * @param string $table The table we're inserting into
+		 * @return Command
+		 */
+		abstract public function insert(array $cols, string $table): Command;
+
+		/**
+		 * Adding the values for insertion.
+		 * @param int $cols The column count that we'll be inputting.
+		 * @return Command
+		 */
+		abstract public function values(int $cols): Command;
 
 		/**
 		 * Declaring the table
@@ -82,7 +107,7 @@
 		 * @return Command
 		 */
 		abstract public function vars(): Command;
-		
+
 		/**
 		 * Running the query
 		 * @return void This should always be the final command processed so there's no need to daisy-chain.
@@ -101,7 +126,7 @@
 		 * @param int $offset What records to start from.
 		 * @return void This should always be the final command processed so there's no need to daisy-chain.
 		 */
-		abstract public function queryMany(int $limit, int $offset=0): void;
+		abstract public function queryMany(int $limit, int $offset = 0): void;
 
 		/**
 		 * Function to return records as a collection of object
@@ -109,12 +134,12 @@
 		 * @return object|null
 		 */
 		abstract public function queryObject(string $model): ?object;
-		
+
 		/**
 		 * Running a prepared statement
-		 * 
+		 *
 		 * More flexible prepared statement.
-		 * 
+		 *
 		 * This should depreciate itself as the project grows.
 		 * @param string $query A string written in standard prepared statement format.
 		 * @param array $params An array of parameters to prepare
@@ -141,7 +166,7 @@
 
 		/**
 		 * Turns on or off autoCommit.
-		 * 
+		 *
 		 * Forcefully commits any insert, updates or deletes. Dangerous!
 		 * @param int $val Can either be 1 or 0. Enables/Disables autoCommit.
 		 * @return bool Returns 1 if the action completed. Returns 0 if it did not.
@@ -156,14 +181,14 @@
 
 		/**
 		 * Reset the query for the next one.
-		 * 
+		 *
 		 * Empties the query string, replace variable array and primary key. If the query is already empty does nothing.
 		 * @return void This should always be run on its own and doesn't return a value.
 		 */
-		public function emptyQuery(): void {
-			if($this->query == '') {
+		public function emptyQuery(): void
+		{
+			if ($this->query == '')
 				return;
-			}
 
 			$this->query = '';
 			$this->repVar = [];
@@ -172,57 +197,53 @@
 
 		/**
 		 * Gets a cancelled list of columns
-		 * 
+		 *
 		 * Prepares a list of columns and cancels reserved words.
 		 * @param array $cols The list of columns to cancel out.
 		 * @return array
 		 */
-		public function cols(array $cols): array {
+		protected function cols(array $cols): array
+		{
 			$colList = [];
 
-			foreach($cols as $v) {
+			foreach ($cols as $v)
 				$colList[] = $this->cancelReserve($v);
-			}
 
 			return $colList;
 		}
 
 		/**
 		 * Cancel reserved words.
-		 * 
+		 *
 		 * Cancels reserved words (Words like 'SELECT', 'JOIN', 'UPDATE' before allowing the query to run)
-		 * 
+		 *
 		 * Each Driver defines its own reserved words.
 		 * @param string $word The word to cancel
 		 * @return string Returns the cancelled word (if it was cancelled)
 		 */
-		public function cancelReserve(string $word): string {
-			if(in_array($word, $this->reservedWord)) {
-				return '`' . $word . '`';
-			}
-			return $word;
+		protected function cancelReserve(string $word): string
+		{
+			return in_array($word, $this->reservedWord) ? '`' . $word . '`' : $word;
 		}
 
-        public function getResults(): array {
-            $r = $this->results;
-            $this->results = [];
+		public function getResults(): array
+		{
+			$r = $this->results;
+			$this->results = [];
 
-            return $r;
-        }
+			return $r;
+		}
 
-        public function getResult(mixed $id): array {
-            $r = $this->results;
-            $this->results = [];
+		public function getResult(mixed $id): array
+		{
+			$r = $this->results;
+			$this->results = [];
 
-            $record = [];
-            if(array_key_exists($id, $r)) {
-                $record = $r[$id];
-            }
+			return array_key_exists($id, $r) ? $r[$id] : [];
+		}
 
-            return $record;
-        }
-
-        public function setResults(array $r): void {
-            $this->results = $r;
-        }
+		public function setResults(array $r): void
+		{
+			$this->results = $r;
+		}
 	}

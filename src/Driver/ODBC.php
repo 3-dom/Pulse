@@ -20,18 +20,18 @@
 
 		public function call(string $procedure, string $pKey=NULL): Command {
 			$this->emptyQuery();
-			if($pKey) {
+			if($pKey)
 				$this->pKey = $pKey;
-			}
+
 			$this->query = "CALL $procedure;";
 			return $this;
 		}
 
 		public function select(array $cols, string $pKey=NULL): Command {
 			$this->emptyQuery();
-			if($pKey) {
+			if($pKey)
 				$this->pKey = $pKey;
-			}
+
 			$this->query = 'SELECT ' . implode(',', $this->cols($cols));
 			return $this;
 		}
@@ -103,14 +103,13 @@
 			
 			$multiQuery = odbc_next_result($stmt);
 
-			if(!$rs) {
+			if(!$rs)
 				return [];
-			}
+
 			$recordSets[] = $rs;
 
-			if(!$multiQuery) {
+			if(!$multiQuery)
 				return $recordSets;
-			}
 
 			do {
 				$recordSets[] = $this->getResult($stmt);
@@ -146,7 +145,6 @@
 
 		public function close(): bool {
 			odbc_close($this->con);
-
 			return !$this->ping();
 		}
 
