@@ -15,9 +15,12 @@
 
 		public function __construct(string $src, string $usr, string $pas, string $db, $con = NULL)
 		{
-			try {
+			try
+            {
 				$this->con = $con ?? new mysqli($src, $usr, $pas, $db);
-			} catch (mysqli_sql_exception  $e) {
+			}
+            catch (mysqli_sql_exception  $e)
+            {
 				die($e->getMessage());
 			}
 		}
@@ -52,7 +55,8 @@
 		public function prepare(string $query, array $params): mysqli_stmt
 		{
 			$stmt = $this->con->prepare($query);
-			if ($params) {
+			if ($params)
+            {
 				$args = $this->paramFromArray([...$params]);
 				$stmt->bind_param($args, ...$params);
 			}
@@ -72,31 +76,15 @@
 			if (!$rs)
 				return [];
 
-			if (!$multiQuery) {
-				foreach ($rs as $row) {
-					if ($this->pKey) {
-						$recordSets[$row[$this->pKey]] = $row;
-						continue;
-					}
-					$recordSets[] = $row;
-				}
-
+			if (!$multiQuery)
+            {
+                $recordSets[] = $this->buildFromArray($rs);
 				$stmt->close();
 				return $recordSets;
 			}
 
 			while ($stmt->more_results()) {
-				$tmp = [];
-
-				foreach ($rs as $row) {
-					if ($this->pKey) {
-						$tmp[$row[$this->pKey]] = $row;
-						continue;
-					}
-					$tmp[] = $row;
-				}
-
-				$recordSets[] = $tmp;
+                $recordSets[] = $this->buildFromArray($rs);
 				$stmt->next_result();
 				$rs = $stmt->get_result();
 			}

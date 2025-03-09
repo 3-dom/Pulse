@@ -25,7 +25,8 @@
                 ?? \pg_connect("host=$src dbname=$db user=$usr password=$pas")
                 or die('Connection Refused');
 
-            if($schema) {
+            if($schema)
+            {
                 pg_query($this->con, "SET search_path TO $schema");
             }
         }
@@ -57,24 +58,16 @@
 
         public function queryObject(string $model = ''): ?object
         {
-            $q = $this->query;
-            $r = $this->repVar;
-            $stmt = $this->prepare($q, $r);
-
-            $stmt->execute();
-            $rs = $stmt->get_result();
-
-            if (!$rs)
-                return NULL;
-
-            return $rs->fetch_object($model);
+            pg_fetch_object($this->query, $model);
+            return null;
         }
 
         public function prepare(string $query, array $params): false|Result
         {
             $stmt = pg_prepare($this->con, '', $query);
 
-            if ($params) {
+            if ($params)
+            {
                 $args = $this->paramFromArray([...$params]);
                 $stmt->bind_param($args, ...$params);
             }
@@ -84,47 +77,15 @@
 
         public function queryRaw(string $query, array $params = []): ?array
         {
-            $recordSets = [];
             $stmt = $this->prepare($query, $params);
-            $stmt->execute();
-            $rs = $stmt->get_result();
+            $result = pg_execute($this->con, '', $stmt);
 
-            $multiQuery = $stmt->more_results();
-
-            if (!$rs)
+            if (!$result)
                 return [];
 
-            if (!$multiQuery) {
-                foreach ($rs as $row) {
-                    if ($this->pKey) {
-                        $recordSets[$row[$this->pKey]] = $row;
-                        continue;
-                    }
-                    $recordSets[] = $row;
-                }
+            $rs = pg_fetch_assoc($result, PGSQL_NUM);
 
-                $stmt->close();
-                return $recordSets;
-            }
-
-            while ($stmt->more_results()) {
-                $tmp = [];
-
-                foreach ($rs as $row) {
-                    if ($this->pKey) {
-                        $tmp[$row[$this->pKey]] = $row;
-                        continue;
-                    }
-                    $tmp[] = $row;
-                }
-
-                $recordSets[] = $tmp;
-                $stmt->next_result();
-                $rs = $stmt->get_result();
-            }
-
-            $stmt->close();
-            return $recordSets;
+            return [$this->pKey ? $this->buildFromArray($rs) : $rs];
         }
 
         /**
@@ -138,8 +99,10 @@
         public function paramFromArray(array $array): string
         {
             $args = '';
-            foreach ($array as $x) {
-                $args .= match (gettype($x)) {
+            foreach ($array as $x)
+            {
+                $args .= match (gettype($x))
+                {
                     'integer' => 'i',
                     'double' => 'd',
                     default => 's',
@@ -165,5 +128,10 @@
                 return FALSE;
 
             return pg_close($this->con);
+        }
+
+        public function appendSchema(string $s): void
+        {
+
         }
     }

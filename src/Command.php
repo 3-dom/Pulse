@@ -164,7 +164,9 @@
             if($pKey)
                 $this->pKey = $pKey;
 
-            $this->query = 'SELECT ' . implode(',', $this->cols($cols));
+            $this->cols($cols);
+            $this->query = 'SELECT ' . implode(',', $cols);
+
             return $this;
         }
 
@@ -295,6 +297,29 @@
 		{
 			$word = in_array($word, $this->reservedWord) ? '`' . $word . '`' : $word;
 		}
+
+        protected function buildFromArray(mixed $rs): array
+        {
+            $recordSets = [];
+
+            $pKey = &$this->pKey;
+            if($pKey)
+            {
+                foreach ($rs as $row)
+                {
+                    $recordSets[$row[$pKey]] = $row;
+                }
+
+                return $recordSets;
+            }
+
+            foreach ($rs as $row)
+            {
+                $recordSets[] = $row;
+            }
+
+            return $recordSets;
+        }
 
 		public function getResults(): array
 		{
