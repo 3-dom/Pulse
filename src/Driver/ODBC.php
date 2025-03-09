@@ -18,77 +18,13 @@
 			}
 		}
 
-		public function call(string $procedure, string $pKey=NULL): Command {
-			$this->emptyQuery();
-			if($pKey)
-				$this->pKey = $pKey;
-
-			$this->query = "CALL $procedure;";
-			return $this;
-		}
-
-		public function select(array $cols, string $pKey=NULL): Command {
-			$this->emptyQuery();
-			if($pKey)
-				$this->pKey = $pKey;
-
-			$this->query = 'SELECT ' . implode(',', $this->cols($cols));
-			return $this;
-		}
-
-		public function from(string $table): Command {
-			$this->query .= ' FROM ' . $this->cancelReserve($table);
-			return $this;
-		}
-
-		public function where(string $filter): Command {
-			$this->query .= ' WHERE ' . $filter;
-			return $this;
-		}
-
-		public function order(string $order): Command {
-			$this->query .= ' ORDER BY ' . $order;
-			return $this;
-		}
-
 		public function limit(int $size=0): Command {
 			$this->query = preg_replace('/^SELECT/', "SELECT TOP $size", $this->query);
 			return $this;
 		}
 
-		public function vars(...$vars): Command {
-			$this->repVar = $vars;
-			return $this;
-		}
-		
-		public function query(): void {
-			$q = $this->query;
-			$r = $this->repVar;
-
-			$this->setResults($this->queryRaw($q, $r));
-			$this->emptyQuery();
-		}
-
 		public function queryObject(string $model): object|null {
 			return null;
-		}
-
-		public function queryOne(): void {
-			$q = $this->query;
-			$r = $this->repVar;
-
-			$rs = $this->queryRaw($q, $r);
-			$this->setResults(array_slice($rs, 0, 1, true));
-			$this->emptyQuery();
-		}
-
-		public function queryMany(int $limit, int $offset=0): void {
-			$q = $this->query;
-			$r = $this->repVar;
-			$rs = $this->queryRaw($q, $r);
-            $this->setResults(array_slice($rs, $offset, $limit, true));
-
-			$this->emptyQuery();
 		}
 
 		public function prepare(string $query, array $params=[]): mixed {
@@ -148,4 +84,8 @@
 			return !$this->ping();
 		}
 
-	}
+        public function values(int $cols): Command
+        {
+            // TODO: Implement values() method.
+        }
+    }

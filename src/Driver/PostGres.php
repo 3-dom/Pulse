@@ -1,6 +1,7 @@
 <?php
     namespace ThreeDom\DataMage\Driver;
 
+    use PgSql\Result;
     use ThreeDom\DataMage\Command;
 
     class PostGres extends Command
@@ -25,188 +26,105 @@
                 or die('Connection Refused');
 
             if($schema) {
-                pg_query($this->con, 'SET search_path TO yourschema');
+                pg_query($this->con, "SET search_path TO $schema");
             }
         }
 
-        public function call(string $procedure, string $pKey = NULL): Command
-        {
-            $this->emptyQuery();
-            if ($pKey)
-                $this->pKey = $pKey;
+        #[\Override]
+        public function from(string $table): Command {
+            $this->cancelReserve($table);
+            $this->appendSchema($table);
 
-            $this->query = "CALL $procedure;";
-            return $this;
-        }
-
-        public function update(string $table, array $cols, array $vals): Command
-        {
-//            $binds = '';
-//            $this->query = "UPDATE $table SET ";
-//
-//            foreach ($this->cols($cols) as $col)
-//                $binds .= $col . ' = ?, ';
-//
-//            $binds = substr($binds, 0, -2);
-//            $this->query .= $binds;
-//            $this->vars(...$vals);
-//
-//            return $this;
-        }
-
-        public function select(array $cols, string $pKey = NULL): Command
-        {
-//            $this->emptyQuery();
-//            if ($pKey)
-//                $this->pKey = $pKey;
-//
-//            $this->query = 'SELECT ' . implode(',', $this->cols($cols));
-//            return $this;
-        }
-
-        public function from(string $table): Command
-        {
             $this->query .= ' FROM ' . $this->cancelReserve($table);
-            return $this;
-        }
-
-        public function where(string $filter): Command
-        {
-            $this->query .= " WHERE $filter";
-            return $this;
-        }
-
-        public function order(string $order): Command
-        {
-            $this->query .= " ORDER BY $order";
             return $this;
         }
 
         public function limit(): Command
         {
-//            $this->query .= ' LIMIT ?, ?;';
-//            return $this;
-        }
-
-        public function insert(array $cols, string $table): Command
-        {
-            $this->emptyQuery();
-            $this->query = "INSERT INTO $table(" . implode(',', $this->cols($cols)) . ') VALUES';
-            $this->values(sizeof($cols));
-
+            $this->query .= ' LIMIT ?, ?;';
             return $this;
         }
 
         public function values(int $count): Command
         {
-            $this->query .= '(' . str_repeat('?,', $count - 1) . '?)';
+            $this->query .= '(';
+            for($i = 1; $i <= $count; $i++)
+                $this->query .= "$$i,";
+            $this->query .= '?)';
+            
             return $this;
-        }
-
-        public function vars(...$vars): Command
-        {
-//            $this->repVar = array_merge($this->repVar, $vars);
-//            return $this;
-        }
-
-        public function query(): void
-        {
-//            $q = $this->query;
-//            $r = $this->repVar;
-//
-//            $this->setResults($this->queryRaw($q, $r));
-//            $this->emptyQuery();
         }
 
         public function queryObject(string $model = ''): ?object
         {
-//            $q = $this->query;
-//            $r = $this->repVar;
-//            $stmt = $this->prepare($q, $r);
-//
-//            $stmt->execute();
-//            $rs = $stmt->get_result();
-//
-//            if (!$rs)
-//                return NULL;
-//
-//            return $rs->fetch_object($model);
+            $q = $this->query;
+            $r = $this->repVar;
+            $stmt = $this->prepare($q, $r);
+
+            $stmt->execute();
+            $rs = $stmt->get_result();
+
+            if (!$rs)
+                return NULL;
+
+            return $rs->fetch_object($model);
         }
 
-        public function queryOne(): void
+        public function prepare(string $query, array $params): false|Result
         {
-//            $q = $this->query;
-//            $r = $this->repVar;
-//
-//            $rs = $this->queryRaw($q, $r);
-//            $this->setResults(array_slice($rs, 0, 1, TRUE));
-//            $this->emptyQuery();
-        }
+            $stmt = pg_prepare($this->con, '', $query);
 
-        public function queryMany(int $limit, int $offset = 0): void
-        {
-//            $q = $this->query;
-//            $r = $this->repVar;
-//            $rs = $this->queryRaw($q, $r);
-//            $this->setResults(array_slice($rs, $offset, $limit, TRUE));
-//
-//            $this->emptyQuery();
-        }
+            if ($params) {
+                $args = $this->paramFromArray([...$params]);
+                $stmt->bind_param($args, ...$params);
+            }
 
-        public function prepare(string $query, array $params): mysqli_stmt
-        {
-//            $stmt = $this->con->prepare($query);
-//            if ($params) {
-//                $args = $this->paramFromArray([...$params]);
-//                $stmt->bind_param($args, ...$params);
-//            }
-//
-//            return $stmt;
+            return pg_prepare($this->con, '', $query);
         }
 
         public function queryRaw(string $query, array $params = []): ?array
         {
-//            $recordSets = [];
-//            $stmt = $this->prepare($query, $params);
-//            $stmt->execute();
-//            $rs = $stmt->get_result();
-//
-//            $multiQuery = $stmt->more_results();
-//
-//            if (!$rs)
-//                return [];
-//
-//            if (!$multiQuery) {
-//                foreach ($rs as $row) {
-//                    if ($this->pKey) {
-//                        $recordSets[$row[$this->pKey]] = $row;
-//                        continue;
-//                    }
-//                    $recordSets[] = $row;
-//                }
-//
-//                $stmt->close();
-//                return $recordSets;
-//            }
-//
-//            while ($stmt->more_results()) {
-//                $tmp = [];
-//
-//                foreach ($rs as $row) {
-//                    if ($this->pKey) {
-//                        $tmp[$row[$this->pKey]] = $row;
-//                        continue;
-//                    }
-//                    $tmp[] = $row;
-//                }
-//
-//                $recordSets[] = $tmp;
-//                $stmt->next_result();
-//                $rs = $stmt->get_result();
-//            }
-//
-//            $stmt->close();
-//            return $recordSets;
+            $recordSets = [];
+            $stmt = $this->prepare($query, $params);
+            $stmt->execute();
+            $rs = $stmt->get_result();
+
+            $multiQuery = $stmt->more_results();
+
+            if (!$rs)
+                return [];
+
+            if (!$multiQuery) {
+                foreach ($rs as $row) {
+                    if ($this->pKey) {
+                        $recordSets[$row[$this->pKey]] = $row;
+                        continue;
+                    }
+                    $recordSets[] = $row;
+                }
+
+                $stmt->close();
+                return $recordSets;
+            }
+
+            while ($stmt->more_results()) {
+                $tmp = [];
+
+                foreach ($rs as $row) {
+                    if ($this->pKey) {
+                        $tmp[$row[$this->pKey]] = $row;
+                        continue;
+                    }
+                    $tmp[] = $row;
+                }
+
+                $recordSets[] = $tmp;
+                $stmt->next_result();
+                $rs = $stmt->get_result();
+            }
+
+            $stmt->close();
+            return $recordSets;
         }
 
         /**
@@ -219,16 +137,16 @@
          */
         public function paramFromArray(array $array): string
         {
-//            $args = '';
-//            foreach ($array as $x) {
-//                $args .= match (gettype($x)) {
-//                    'integer' => 'i',
-//                    'double' => 'd',
-//                    default => 's',
-//                };
-//            }
-//
-//            return $args;
+            $args = '';
+            foreach ($array as $x) {
+                $args .= match (gettype($x)) {
+                    'integer' => 'i',
+                    'double' => 'd',
+                    default => 's',
+                };
+            }
+
+            return $args;
         }
 
         public function ping(): bool

@@ -35,149 +35,225 @@
 		protected string $pKey = '';
 		private array $results;
 
-		/**
-		 * Calling procedures
-		 * @param string $procedure The name of the procedure to run
-		 * @param string $pKey The column name to use as a primary key
-		 * @return Command
-		 */
-		abstract public function call(string $procedure, string $pKey): Command;
+        /**
+         * Adding the values for insertion.
+         * @param int $count The column count that we'll be inputting.
+         * @return Command
+         */
+        abstract public function values(int $count): Command;
 
-		/**
-		 * Beginning a select statement
-		 * @param array $cols A list of columns to pull.
-		 * @param string $pKey The column name to use as a primary key
-		 * @return Command
-		 */
-		abstract public function select(array $cols, string $pKey): Command;
+        /**
+         * Limiting the records
+         * @return Command
+         */
+        abstract public function limit(): Command;
 
-		/**
-		 * Runs an update statement
-		 * @param string $table The table we're updating
-		 * @param array $cols An array of columns to update.
-		 * @param array vals An array of values to bind.
-		 * @return Command
-		 */
-		abstract public function update(string $cols, array $data, array $vals): Command;
+        /**
+         * Function to return records as a collection of object
+         * @param string $model
+         * @return object|null
+         */
+        abstract public function queryObject(string $model): ?object;
 
-		/**
-		 * Beginning an insert statement
-		 * @param array $cols The columns to populate.
-		 * @param string $table The table we're inserting into
-		 * @return Command
-		 */
-		abstract public function insert(array $cols, string $table): Command;
+        /**
+         * Running a prepared statement
+         *
+         * More flexible prepared statement.
+         *
+         * This should depreciate itself as the project grows.
+         * @param string $query A string written in standard prepared statement format.
+         * @param array $params An array of parameters to prepare
+         * @return mixed Returns a prepared statement object, (differing depending upon the flavor)
+         */
+        abstract public function prepare(string $query, array $params): mixed;
 
-		/**
-		 * Adding the values for insertion.
-		 * @param int $cols The column count that we'll be inputting.
-		 * @return Command
-		 */
-		abstract public function values(int $cols): Command;
+        /**
+         * Running a prepared statement and returning multiple record sets.
+         * Even more flexible prepared statement! Allows for multiple record sets.
+         * This shouldn't really be used, if you ever need to run multiple things it
+         * should be a StoredProcedure.
+         * @param string $query A string written in standard prepared statement format.
+         * @param array $params An array of parameters to prepare
+         * @return array|null This should always be the final command processed so there's no need to daisy-chain.
+         */
+        abstract public function queryRaw(string $query, array $params): ?array;
 
-		/**
-		 * Declaring the table
-		 * @param string $table Name of the table to use
-		 * @return Command
-		 */
-		abstract public function from(string $table): Command;
+        /**
+         * Check connection is alive.
+         * @return bool Returns 1 if the connection is alive. Returns 0 if it's ded.
+         */
+        abstract public function ping(): bool;
 
-		/**
-		 * Specifying filters
-		 * @param string $filter Raw string of conditions to check for.
-		 * @return Command
-		 */
-		abstract public function where(string $filter): Command;
+        /**
+         * Turns on or off autoCommit.
+         *
+         * Forcefully commits any insert, updates or deletes. Dangerous!
+         * @param int $val Can either be 1 or 0. Enables/Disables autoCommit.
+         * @return bool Returns 1 if the action completed. Returns 0 if it did not.
+         */
+        abstract public function autoCommit(int $val): bool;
 
-		/**
-		 * Ordering the record set
-		 * @param string $order Which column or condition to order on.
-		 * @return Command
-		 */
-		abstract public function order(string $order): Command;
+        /**
+         * Close the connection.
+         * @return bool Returns 1 if the connection no longer exists. Returns 0 if it does.
+         */
+        abstract public function close(): bool;
 
-		/**
-		 * Limiting the records
-		 * @return Command
-		 */
-		abstract public function limit(): Command;
+        /**
+         * Calling procedures
+         * @param string $procedure The name of the procedure to run
+         * @param ?string $pKey The column name to use as a primary key
+         * @return Command
+         */
+        public function call(string $procedure, ?string $pKey=NULL): Command
+        {
+            $this->emptyQuery();
+            if($pKey)
+                $this->pKey = $pKey;
 
-		/**
-		 * Providing the replacement variables.
-		 * @return Command
-		 */
-		abstract public function vars(): Command;
+            $this->query = "CALL $procedure;";
+            return $this;
+        }
+        /**
+         * Runs an update statement
+         * @param string $table The table we're updating
+         * @param array $data An array of columns to update.
+         * @param array $vals An array of values to bind.
+         * @return Command
+         */
+        public function update(string $table, array $data, array $vals): Command
+        {
+            $binds = '';
+            $this->query = "UPDATE $table SET ";
+            $cols = $this->cols($data);
 
-		/**
-		 * Running the query
-		 * @return void This should always be the final command processed so there's no need to daisy-chain.
-		 */
-		abstract public function query(): void;
+            foreach ($cols as $col)
+                $binds .= $col . ' = ?, ';
 
-		/**
-		 * Running the query and returning one result.
-		 * @return void This should always be the final command processed so there's no need to daisy-chain.
-		 */
-		abstract public function queryOne(): void;
+            $binds = substr($binds, 0, -2);
+            $this->query .= $binds;
+            $this->vars(...$vals);
 
-		/**
-		 * Running and splicing the query down
-		 * @param int $limit How much to limit the result by.
-		 * @param int $offset What records to start from.
-		 * @return void This should always be the final command processed so there's no need to daisy-chain.
-		 */
-		abstract public function queryMany(int $limit, int $offset = 0): void;
+            return $this;
+        }
 
-		/**
-		 * Function to return records as a collection of object
-		 * @param string $model
-		 * @return object|null
-		 */
-		abstract public function queryObject(string $model): ?object;
+        /**
+         * Beginning an insert statement
+         * @param array $cols The columns to populate.
+         * @param string $table The table we're inserting into
+         * @return Command
+         */
+        public function insert(array $cols, string $table): Command
+        {
+            $this->emptyQuery();
+            $this->query = "INSERT INTO $table(" . implode(',', $this->cols($cols)) . ') VALUES';
+            $this->values(sizeof($cols));
 
-		/**
-		 * Running a prepared statement
-		 *
-		 * More flexible prepared statement.
-		 *
-		 * This should depreciate itself as the project grows.
-		 * @param string $query A string written in standard prepared statement format.
-		 * @param array $params An array of parameters to prepare
-		 * @return mixed Returns a prepared statement object, (differing depending upon the flavor)
-		 */
-		abstract public function prepare(string $query, array $params): mixed;
+            return $this;
+        }
 
-		/**
-		 * Running a prepared statement and returning multiple record sets.
-		 * Even more flexible prepared statement! Allows for multiple record sets.
-		 * This shouldn't really be used, if you ever need to run multiple things it
-		 * should be a StoredProcedure.
-		 * @param string $query A string written in standard prepared statement format.
-		 * @param array $params An array of parameters to prepare
-		 * @return array|null This should always be the final command processed so there's no need to daisy-chain.
-		 */
-		abstract public function queryRaw(string $query, array $params): ?array;
+        /**
+         * Beginning a select statement
+         * @param array $cols A list of columns to pull.
+         * @param ?string $pKey The column name to use as a primary key
+         * @return Command
+         */
+        public function select(array $cols, ?string $pKey=NULL): Command
+        {
+            $this->emptyQuery();
+            if($pKey)
+                $this->pKey = $pKey;
 
-		/**
-		 * Check connection is alive.
-		 * @return bool Returns 1 if the connection is alive. Returns 0 if it's ded.
-		 */
-		abstract public function ping(): bool;
+            $this->query = 'SELECT ' . implode(',', $this->cols($cols));
+            return $this;
+        }
 
-		/**
-		 * Turns on or off autoCommit.
-		 *
-		 * Forcefully commits any insert, updates or deletes. Dangerous!
-		 * @param int $val Can either be 1 or 0. Enables/Disables autoCommit.
-		 * @return bool Returns 1 if the action completed. Returns 0 if it did not.
-		 */
-		abstract public function autoCommit(int $val): bool;
+        /**
+         * Declaring the table
+         * @param string $table Name of the table to use
+         * @return Command
+         */
+        public function from(string $table): Command
+        {
+            $this->query .= ' FROM ' . $this->cancelReserve($table);
+            return $this;
+        }
 
-		/**
-		 * Close the connection.
-		 * @return bool Returns 1 if the connection no longer exists. Returns 0 if it does.
-		 */
-		abstract public function close(): bool;
+        /**
+         * Specifying filters
+         * @param string $filter Raw string of conditions to check for.
+         * @return Command
+         */
+        public function where(string $filter): Command
+        {
+            $this->query .= ' WHERE ' . $filter;
+            return $this;
+        }
+
+        /**
+         * Appending or replacing the replacement variables.
+         * @param mixed ...$vars Unpacked array of variables. Will auto-detect types.
+         * @return Command
+         */
+        public function vars(...$vars): Command
+        {
+            $this->repVar = $vars;
+            return $this;
+        }
+
+        /**
+         * Ordering the record set
+         * @param string $order Which column or condition to order on.
+         * @return Command
+         */
+        public function order(string $order): Command
+        {
+            $this->query .= ' ORDER BY ' . $order;
+            return $this;
+        }
+
+        /**
+         * Running the query
+         * @return void This should always be the final command processed so there's no need to daisy-chain.
+         */
+        public function query(): void
+        {
+            $q = $this->query;
+            $r = $this->repVar;
+
+            $this->setResults($this->queryRaw($q, $r));
+            $this->emptyQuery();
+        }
+
+        /**
+         * Running the query and returning one result.
+         * @return void This should always be the final command processed so there's no need to daisy-chain.
+         */
+        public function queryOne(): void
+        {
+            $q = $this->query;
+            $r = $this->repVar;
+
+            $rs = $this->queryRaw($q, $r);
+            $this->setResults(array_slice($rs, 0, 1, true));
+            $this->emptyQuery();
+        }
+
+        /**
+         * Running and splicing the query down
+         * @param int $limit How much to limit the result by.
+         * @param int $offset What records to start from.
+         * @return void This should always be the final command processed so there's no need to daisy-chain.
+         */
+        public function queryMany(int $limit, int $offset=0): void
+        {
+            $q = $this->query;
+            $r = $this->repVar;
+            $rs = $this->queryRaw($q, $r);
+            $this->setResults(array_slice($rs, $offset, $limit, true));
+
+            $this->emptyQuery();
+        }
 
 		/**
 		 * Reset the query for the next one.
@@ -185,7 +261,7 @@
 		 * Empties the query string, replace variable array and primary key. If the query is already empty does nothing.
 		 * @return void This should always be run on its own and doesn't return a value.
 		 */
-		public function emptyQuery(): void
+		protected function emptyQuery(): void
 		{
 			if ($this->query == '')
 				return;
@@ -199,17 +275,12 @@
 		 * Gets a cancelled list of columns
 		 *
 		 * Prepares a list of columns and cancels reserved words.
-		 * @param array $cols The list of columns to cancel out.
-		 * @return array
+		 * @param array &$cols The list of columns to cancel out.
 		 */
-		protected function cols(array $cols): array
+		protected function cols(array &$cols): void
 		{
-			$colList = [];
-
-			foreach ($cols as $v)
-				$colList[] = $this->cancelReserve($v);
-
-			return $colList;
+			foreach ($cols as &$col)
+				$this->cancelReserve($col);
 		}
 
 		/**
@@ -218,12 +289,11 @@
 		 * Cancels reserved words (Words like 'SELECT', 'JOIN', 'UPDATE' before allowing the query to run)
 		 *
 		 * Each Driver defines its own reserved words.
-		 * @param string $word The word to cancel
-		 * @return string Returns the cancelled word (if it was cancelled)
+		 * @param string &$word The word to cancel
 		 */
-		protected function cancelReserve(string $word): string
+		protected function cancelReserve(string &$word): void
 		{
-			return in_array($word, $this->reservedWord) ? '`' . $word . '`' : $word;
+			$word = in_array($word, $this->reservedWord) ? '`' . $word . '`' : $word;
 		}
 
 		public function getResults(): array
