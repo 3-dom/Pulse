@@ -25,11 +25,17 @@
 			}
 		}
 
-		public function limit(): Command
-		{
-			$this->query .= ' LIMIT ?, ?;';
-			return $this;
-		}
+        public function limit(?int $x=NULL): Command
+        {
+            $this->query .= ' LIMIT ' . ($x ?: '?');
+            return $this;
+        }
+
+        public function offset(?int $x=NULL): Command
+        {
+            $this->query .= ',' . ($x ?: '?');
+            return $this;
+        }
 
 		public function values(int $count): Command
 		{
@@ -52,7 +58,7 @@
 			return $rs->fetch_object($model);
 		}
 
-		public function prepare(string $query, array $params): mysqli_stmt
+		public function prepare(string &$query, array &$params): mysqli_stmt
 		{
 			$stmt = $this->con->prepare($query);
 			if ($params)
@@ -64,7 +70,7 @@
 			return $stmt;
 		}
 
-		public function queryRaw(string $query, array $params = []): ?array
+		public function queryRaw(string &$query, array &$params = []): ?array
 		{
 			$recordSets = [];
 			$stmt = $this->prepare($query, $params);
@@ -78,7 +84,7 @@
 
 			if (!$multiQuery)
             {
-                $recordSets[] = $this->buildFromArray($rs);
+                $recordSets = $this->buildFromArray($rs);
 				$stmt->close();
 				return $recordSets;
 			}

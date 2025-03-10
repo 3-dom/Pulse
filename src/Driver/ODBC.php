@@ -18,20 +18,26 @@
 			}
 		}
 
-		public function limit(int $size=0): Command {
-			$this->query = preg_replace('/^SELECT/', "SELECT TOP $size", $this->query);
+		public function limit(?int $x=NULL): Command {
+			$this->query = preg_replace('/^SELECT/', 'SELECT TOP ' . ($x ?: '?'), $this->query);
 			return $this;
 		}
+
+        public function offset(?int $x=NULL): Command
+        {
+            //$todo;
+            return $this;
+        }
 
 		public function queryObject(string $model): object|null {
 			return null;
 		}
 
-		public function prepare(string $query, array $params=[]): mixed {
+		public function prepare(string &$query, array &$params=[]): mixed {
 			return odbc_prepare($this->con, $query);
 		}
 
-		public function queryRaw(string $query, array $params): ?array {
+		public function queryRaw(string &$query, array $params): ?array {
 			$recordSets = [];
 			$stmt = $this->prepare($query);
 			odbc_execute($stmt, $params);
@@ -87,5 +93,6 @@
         public function values(int $cols): Command
         {
             // TODO: Implement values() method.
+            return $this;
         }
     }

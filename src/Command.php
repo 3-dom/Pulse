@@ -46,7 +46,13 @@
          * Limiting the records
          * @return Command
          */
-        abstract public function limit(): Command;
+        abstract public function limit(int $x): Command;
+
+        /**
+         * Offsets the records
+         * @return Command
+         */
+        abstract public function offset(int $x): Command;
 
         /**
          * Function to return records as a collection of object
@@ -65,7 +71,7 @@
          * @param array $params An array of parameters to prepare
          * @return mixed Returns a prepared statement object, (differing depending upon the flavor)
          */
-        abstract public function prepare(string $query, array $params): mixed;
+        abstract public function prepare(string &$query, array &$params): mixed;
 
         /**
          * Running a prepared statement and returning multiple record sets.
@@ -76,7 +82,7 @@
          * @param array $params An array of parameters to prepare
          * @return array|null This should always be the final command processed so there's no need to daisy-chain.
          */
-        abstract public function queryRaw(string $query, array $params): ?array;
+        abstract public function queryRaw(string &$query, array &$params): ?array;
 
         /**
          * Check connection is alive.
@@ -146,7 +152,9 @@
         public function insert(array $cols, string $table): Command
         {
             $this->emptyQuery();
-            $this->query = "INSERT INTO $table(" . implode(',', $this->cols($cols)) . ') VALUES';
+            $this->cols($cols);
+
+            $this->query = "INSERT INTO $table(" . implode(',', $cols) . ') VALUES';
             $this->values(sizeof($cols));
 
             return $this;
@@ -222,8 +230,8 @@
          */
         public function query(): void
         {
-            $q = $this->query;
-            $r = $this->repVar;
+            $q = &$this->query;
+            $r = &$this->repVar;
 
             $this->setResults($this->queryRaw($q, $r));
             $this->emptyQuery();
@@ -235,8 +243,8 @@
          */
         public function queryOne(): void
         {
-            $q = $this->query;
-            $r = $this->repVar;
+            $q = &$this->query;
+            $r = &$this->repVar;
 
             $rs = $this->queryRaw($q, $r);
             $this->setResults(array_slice($rs, 0, 1, true));
@@ -251,8 +259,8 @@
          */
         public function queryMany(int $limit, int $offset=0): void
         {
-            $q = $this->query;
-            $r = $this->repVar;
+            $q = &$this->query;
+            $r = &$this->repVar;
             $rs = $this->queryRaw($q, $r);
             $this->setResults(array_slice($rs, $offset, $limit, true));
 

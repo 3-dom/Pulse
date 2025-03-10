@@ -8,6 +8,8 @@
     class PostGres extends Command
     {
         public \PgSql\Connection|false $con;
+        private int $subCount = 1;
+
         public array $reservedWord =
             ['ALL', 'ANALYSE','ANALYZE','AND','ANY','ARRAY','AS','ASC','ASYMMETRIC','AUTHORIZATION','BINARY','BOTH',
             'CAST','CHECK','COLLATE','COLUMN','CONSTRAINT','CREATE','CROSS','CURRENT_CATALOG','CURRENT_DATE',
@@ -36,18 +38,24 @@
             $this->schema = $schema;
         }
 
-        public function limit(): Command
+        public function limit(?int $x = NULL): Command
         {
-            $this->query .= ' LIMIT ?, ?;';
+            $this->query .= ' LIMIT ' . ($x !== NULL ? $x : '?');
+            return $this;
+        }
+
+        public function offset(?int $x = NULL): Command
+        {
+            $this->query .= ' OFFSET ' . ($x !== NULL ? $x : '?');
             return $this;
         }
 
         public function values(int $count): Command
         {
             $this->query .= '(';
-            for($i = 1; $i <= $count; $i++)
+            for($i = 1; $i < $count; $i++)
                 $this->query .= "$$i,";
-            $this->query .= '?)';
+            $this->query .= "$$i)";
             
             return $this;
         }
@@ -64,18 +72,18 @@
             return pg_fetch_object($result, $model);
         }
 
-        public function prepare(string $query, array $params): false|Result
+        public function prepare(string &$query, array &$params): false|Result
         {
             if ($params)
             {
-                print_r("t");
+                $this->substitueValues($query);
                 return pg_query_params($this->con, $query, $params);
             }
 
             return pg_query($this->con, $query);
         }
 
-        public function queryRaw(string $query, array $params = []): ?array
+        public function queryRaw(string &$query, array &$params = []): ?array
         {
             $result = $this->prepare($query, $params);
 
@@ -88,7 +96,7 @@
                 $rs[] = $row;
             }
 
-            return [$this->pKey ? $this->buildFromArray($rs) : $rs];
+            return $this->pKey ? $this->buildFromArray($rs) : $rs;
         }
 
         public function ping(): bool
@@ -107,5 +115,20 @@
                 return FALSE;
 
             return pg_close($this->con);
+        }
+
+        public function substitueValues(string &$query): void
+        {
+            $query = preg_replace_callback(
+                '/\?(?=([^"\'`]*[^"\'`]*)*[^"\'`]*$)/',
+                array($this, 'subCount'),
+                $query
+            );
+
+            $this->subCount = 1;
+        }
+
+        public function subCount($matches) {
+            return '$' . $this->subCount++;
         }
     }
