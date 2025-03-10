@@ -1,6 +1,7 @@
 <?php
     namespace ThreeDom\DataMage\Driver;
 
+    use JetBrains\PhpStorm\NoReturn;
     use PgSql\Result;
     use ThreeDom\DataMage\Command;
 
@@ -18,6 +19,8 @@
             'SELECT','SESSION_USER','SIMILAR','SOME','SYMMETRIC','SYSTEM_USER','TABLE','TABLESAMPLE','THEN','TO',
             'TRAILING','TRUE','UNION','UNIQUE','USING','VERBOSE','VARIADIC','WHEN','WHERE','WINDOW'];
 
+        public string|false $schema;
+
         public function __construct(string $src, string $usr, string $pas, string $db, string $schema = NULL, $con = NULL)
         {
             $this->con =
@@ -29,15 +32,8 @@
             {
                 pg_query($this->con, "SET search_path TO $schema");
             }
-        }
 
-        #[\Override]
-        public function from(string $table): Command {
-            $this->cancelReserve($table);
-            $this->appendSchema($table);
-
-            $this->query .= ' FROM ' . $this->cancelReserve($table);
-            return $this;
+            $this->schema = $schema;
         }
 
         public function limit(): Command
@@ -58,58 +54,41 @@
 
         public function queryObject(string $model = ''): ?object
         {
-            pg_fetch_object($this->query, $model);
-            return null;
+            $q = $this->query;
+            $r = $this->repVar;
+            $result = $this->prepare($q, $r);
+
+            if (!$result)
+                return null;
+
+            return pg_fetch_object($result, $model);
         }
 
         public function prepare(string $query, array $params): false|Result
         {
-            $stmt = pg_prepare($this->con, '', $query);
-
             if ($params)
             {
-                $args = $this->paramFromArray([...$params]);
-                $stmt->bind_param($args, ...$params);
+                print_r("t");
+                return pg_query_params($this->con, $query, $params);
             }
 
-            return pg_prepare($this->con, '', $query);
+            return pg_query($this->con, $query);
         }
 
         public function queryRaw(string $query, array $params = []): ?array
         {
-            $stmt = $this->prepare($query, $params);
-            $result = pg_execute($this->con, '', $stmt);
+            $result = $this->prepare($query, $params);
 
             if (!$result)
                 return [];
 
-            $rs = pg_fetch_assoc($result, PGSQL_NUM);
-
-            return [$this->pKey ? $this->buildFromArray($rs) : $rs];
-        }
-
-        /**
-         * Gets SQL parameter types from an array.
-         *
-         * Very simple and can have more conditions added. Simply iterates over the argument array and populates a string for binding the parameters.
-         * @param array $array The list of parameters you are using for your prepared statement.
-         *
-         * @return string Returns the string the argument list created
-         */
-        public function paramFromArray(array $array): string
-        {
-            $args = '';
-            foreach ($array as $x)
+            $rs = [];
+            while ($row = pg_fetch_assoc($result))
             {
-                $args .= match (gettype($x))
-                {
-                    'integer' => 'i',
-                    'double' => 'd',
-                    default => 's',
-                };
+                $rs[] = $row;
             }
 
-            return $args;
+            return [$this->pKey ? $this->buildFromArray($rs) : $rs];
         }
 
         public function ping(): bool
@@ -128,10 +107,5 @@
                 return FALSE;
 
             return pg_close($this->con);
-        }
-
-        public function appendSchema(string $s): void
-        {
-
         }
     }

@@ -125,9 +125,9 @@
         {
             $binds = '';
             $this->query = "UPDATE $table SET ";
-            $cols = $this->cols($data);
+            $this->cols($data);
 
-            foreach ($cols as $col)
+            foreach ($data as $col)
                 $binds .= $col . ' = ?, ';
 
             $binds = substr($binds, 0, -2);
@@ -177,7 +177,9 @@
          */
         public function from(string $table): Command
         {
-            $this->query .= ' FROM ' . $this->cancelReserve($table);
+            $this->cancelReserve($table);
+            $this->query .= ' FROM ' . $table;
+
             return $this;
         }
 
