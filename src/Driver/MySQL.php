@@ -27,13 +27,14 @@
 
         public function limit(?int $x=NULL): Command
         {
-            $this->query .= ' LIMIT ' . ($x ?: '?');
+            $this->query .= ' LIMIT ' . ($x ?? '?');
             return $this;
         }
 
         public function offset(?int $x=NULL): Command
         {
-            $this->query .= ',' . ($x ?: '?');
+            $this->query .= ',' . ($x ?? '?');
+
             return $this;
         }
 
@@ -73,9 +74,10 @@
 		public function queryRaw(string &$query, array &$params = []): ?array
 		{
 			$recordSets = [];
-			$stmt = $this->prepare($query, $params);
-			$stmt->execute();
-			$rs = $stmt->get_result();
+
+            $stmt = $this->prepare($query, $params);
+            $stmt->execute();
+            $rs = $stmt->get_result();
 
 			$multiQuery = $stmt->more_results();
 
@@ -86,6 +88,7 @@
             {
                 $recordSets = $this->buildFromArray($rs);
 				$stmt->close();
+
 				return $recordSets;
 			}
 
