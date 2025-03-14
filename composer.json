@@ -1,11 +1,11 @@
 {
-    "name": "threedom/data-mage",
-    "description": "Generic wrapper for SQL connections, trying to unify syntax across PHPs many drivers",
+    "name": "threedom/pulse",
+    "description": " Generic wrapper for SQL connections, trying to unify syntax across PHP's many drivers.",
     "type": "project",
     "license": "Unlicense",
     "autoload": {
         "psr-4": {
-            "ThreeDom\\DataMage\\": "src/"
+            "ThreeDom\\Pulse\\": "src/"
         }
     },
     "authors": [
