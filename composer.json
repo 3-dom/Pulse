@@ -13,8 +13,5 @@
             "name": "ThreeDom"
         }
     ],
-    "minimum-stability": "dev",
-    "require": {
-      "ext-mysqli": "*"
-    }
+    "minimum-stability": "dev"
 }
