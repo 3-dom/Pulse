@@ -44,15 +44,17 @@
 
 		/**
 		 * Limiting the records
+		 * @param ?int $x - Value to be used as the limit
 		 * @return Command
 		 */
-		abstract public function limit(int $x): Command;
+		abstract public function limit(?int $x): Command;
 
 		/**
 		 * Offsets the records
+		 * @param ?int $x - Value to be used as the limit
 		 * @return Command
 		 */
-		abstract public function offset(int $x): Command;
+		abstract public function offset(?int $x): Command;
 
 		/**
 		 * Function to return records as a collection of object
