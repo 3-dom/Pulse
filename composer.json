@@ -13,9 +13,5 @@
 			"name": "ThreeDom"
 		}
 	],
-	"minimum-stability": "dev",
-	"require": {
-		"ext-pgsql": "*",
-		"ext-mysqli": "*"
-	}
+	"minimum-stability": "dev"
 }
