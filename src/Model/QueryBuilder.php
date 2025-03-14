@@ -39,8 +39,10 @@
 			$columns = [];
 			$values = [];
 			foreach ($schema['columns'] as $column => $data) {
-				if (!$data['fillable']) continue;
-				if($data['value'] == NULL) continue;
+				if (!$data['fillable'])
+					continue;
+				if ($data['value'] == NULL)
+					continue;
 
 				$columns[] = $column;
 				$values[] = $data['value'];

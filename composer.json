@@ -1,17 +1,17 @@
 {
-    "name": "threedom/pulse",
-    "description": " Generic wrapper for SQL connections, trying to unify syntax across PHP's many drivers.",
-    "type": "project",
-    "license": "Unlicense",
-    "autoload": {
-        "psr-4": {
-            "ThreeDom\\Pulse\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "ThreeDom"
-        }
-    ],
-    "minimum-stability": "dev"
+	"name": "threedom/pulse",
+	"description": " Generic wrapper for SQL connections, trying to unify syntax across PHP's many drivers.",
+	"type": "project",
+	"license": "Unlicense",
+	"autoload": {
+		"psr-4": {
+			"ThreeDom\\Pulse\\": "src/"
+		}
+	},
+	"authors": [
+		{
+			"name": "ThreeDom"
+		}
+	],
+	"minimum-stability": "dev"
 }

@@ -15,28 +15,25 @@
 
 		public function __construct(string $src, string $usr, string $pas, string $db, $con = NULL)
 		{
-			try
-            {
+			try {
 				$this->con = $con ?? new mysqli($src, $usr, $pas, $db);
-			}
-            catch (mysqli_sql_exception  $e)
-            {
+			} catch (mysqli_sql_exception  $e) {
 				die($e->getMessage());
 			}
 		}
 
-        public function limit(?int $x=NULL): Command
-        {
-            $this->query .= ' LIMIT ' . ($x ?? '?');
-            return $this;
-        }
+		public function limit(?int $x = NULL): Command
+		{
+			$this->query .= ' LIMIT ' . ($x ?? '?');
+			return $this;
+		}
 
-        public function offset(?int $x=NULL): Command
-        {
-            $this->query .= ',' . ($x ?? '?');
+		public function offset(?int $x = NULL): Command
+		{
+			$this->query .= ',' . ($x ?? '?');
 
-            return $this;
-        }
+			return $this;
+		}
 
 		public function values(int $count): Command
 		{
@@ -62,8 +59,7 @@
 		public function prepare(string &$query, array &$params): mysqli_stmt
 		{
 			$stmt = $this->con->prepare($query);
-			if ($params)
-            {
+			if ($params) {
 				$args = $this->paramFromArray([...$params]);
 				$stmt->bind_param($args, ...$params);
 			}
@@ -75,25 +71,24 @@
 		{
 			$recordSets = [];
 
-            $stmt = $this->prepare($query, $params);
-            $stmt->execute();
-            $rs = $stmt->get_result();
+			$stmt = $this->prepare($query, $params);
+			$stmt->execute();
+			$rs = $stmt->get_result();
 
 			$multiQuery = $stmt->more_results();
 
 			if (!$rs)
 				return [];
 
-			if (!$multiQuery)
-            {
-                $recordSets = $this->buildFromArray($rs);
+			if (!$multiQuery) {
+				$recordSets = $this->buildFromArray($rs);
 				$stmt->close();
 
 				return $recordSets;
 			}
 
 			while ($stmt->more_results()) {
-                $recordSets[] = $this->buildFromArray($rs);
+				$recordSets[] = $this->buildFromArray($rs);
 				$stmt->next_result();
 				$rs = $stmt->get_result();
 			}
