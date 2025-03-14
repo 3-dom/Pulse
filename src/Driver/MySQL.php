@@ -1,7 +1,7 @@
 <?php
-	namespace ThreeDom\DataMage\Driver;
+	namespace ThreeDom\Pulse\Driver;
 
-	use ThreeDom\DataMage\Command;
+	use ThreeDom\Pulse\Command;
 
 	use mysqli;
 	use mysqli_sql_exception;

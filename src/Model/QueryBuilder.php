@@ -1,7 +1,7 @@
 <?php
-	namespace ThreeDom\DataMage\Model;
+	namespace ThreeDom\Pulse\Model;
 
-	use ThreeDom\DataMage\Command;
+	use ThreeDom\Pulse\Command;
 
 	class QueryBuilder
 	{

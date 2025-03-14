@@ -1,13 +1,13 @@
 <?php
-	namespace ThreeDom\DataMage\Driver;
+	namespace ThreeDom\Pulse\Driver;
 
-	use JetBrains\PhpStorm\NoReturn;
 	use PgSql\Result;
-	use ThreeDom\DataMage\Command;
+	use PgSql\Connection;
+	use ThreeDom\Pulse\Command;
 
 	class PostGres extends Command
 	{
-		public \PgSql\Connection|false $con;
+		public Connection|false $con;
 		private int $subCount = 1;
 
 		public array $reservedWord =

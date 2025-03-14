@@ -1,12 +1,12 @@
 <?php
-	namespace ThreeDom\DataMage;
+	namespace ThreeDom\Pulse;
 
 	/**
-	 * This is the abstract classes all other database drivers us as a template.
+	 * This is the abstract class that all other database drivers us as a template.
 	 * When you modify an abstract function be sure to follow through to the rest of
 	 * the drivers in src/Driver
 	 *
-	 * DataMage uses a concept in object-oriented programming called "Daisy-Chaining"
+	 * Pulse uses a concept in object-oriented programming called "Daisy-Chaining"
 	 * This essentially means it almost always returns itself. This is really cool!
 	 *
 	 * Instead of doing the following:
