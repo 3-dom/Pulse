@@ -1,17 +1,22 @@
 # Pulse: Lightweight & Easy to Use Database Abstraction Layer
-Providing a standard and clean format across the may versions of SQL supported by PHP
+Providing a standard and clean format across the many flavors of SQL supported by PHP
 
-I began working on Pulse while, during a project, I was working with three distinct SQL databases. I needed the syntax to be standardised so
-that -- as I moved tables and data from one database engine to another -- I would not have to modify the code. I had looked into PDO but found
-I couldn't get along with the syntax, hence creating my own solution.
+I began working on Pulse while, during a project, I was maintaining three distinct SQL databases. I needed the syntax to
+be standardised in the code so that -- as I migrated the data from one database engine to another -- I would not have to
+modify the business logic. I had looked into PDO but found I couldn't get along with the syntax, hence creating my own
+solution.
 
-Pulse works by having a main "Command" class which is abstracted into different "Drivers" (though under the hood they just use the drivers
-you're already familliar with). This means that all the commmands you send to the database use an easy to remember, clean and safe-to-use syntax.
-Pulse does not allow for raw queries, every query you write is first prepared and then sent to the database. This means you will not be able
-to write multi-queries.
+Pulse works by having a main "Command" class which is abstracted into different "Drivers" (though under the hood they
+just use the drivers you're already familiar with). This means that all the commands you send to the database use an 
+easy to remember, clean and safe-to-use syntax.
 
-Pulse also provides both a simple Model class and an accompanying QueryBuilder, should you choose to use these. I will eventually write
-documentations for the functions it provides.
+Pulse does not allow for raw queries, every query you write is first prepared and then sent to the database. This means
+you will not be able to write multi-queries. There are a few reasons for this, however I would strongly advise you become
+familiar with stored procedures and functions if you intend to use Pulse. Most databases utilize optimizations for these
+types of queries and are, in my opinion, better practice than huge queries in your code base.
+
+Pulse also provides both a simple Model class and an accompanying QueryBuilder, should you choose to use these. I will 
+eventually write documentations for the functions it provides.
 
 ## Example Pulse Query:
 
