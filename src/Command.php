@@ -364,16 +364,9 @@
 
 			if($pKey)
 			{
-				if(sizeof($rs) === 1)
-				{
-					$recordSets[$rs[0][$pKey]] = $rs[0];
-
-					return $recordSets;
-				}
-
 				foreach($rs as $row)
 				{
-					$recordSets[$row[$pKey]][] = $row;
+					$recordSets[$row[$pKey]] = $row;
 				}
 
 				return $recordSets;
