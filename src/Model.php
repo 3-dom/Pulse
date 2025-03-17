@@ -6,6 +6,7 @@
 	abstract class Model
 	{
 		protected array $schema;
+
 		protected Command $con;
 
 		public function __construct(Command $con)

@@ -22,7 +22,7 @@
 			$pKey = $schema['info']['pKey'];
 			$pKeyVal = $schema['columns'][$pKey]['value'];
 
-			if (!$pKeyVal || !$pKey)
+			if(!$pKeyVal || !$pKey)
 				return;
 
 			$data = QueryBuilder::splitColumns($schema);
@@ -38,10 +38,11 @@
 		{
 			$columns = [];
 			$values = [];
-			foreach ($schema['columns'] as $column => $data) {
-				if (!$data['fillable'])
+			foreach($schema['columns'] as $column => $data)
+			{
+				if(!$data['fillable'])
 					continue;
-				if ($data['value'] == NULL)
+				if($data['value'] == NULL)
 					continue;
 
 				$columns[] = $column;
