@@ -24,9 +24,9 @@
 			return $this->schema['columns'][$key]['value'];
 		}
 
-		public function create()
+		public function create(): ?array
 		{
-			QueryBuilder::create($this->con, $this->schema);
+			return QueryBuilder::create($this->con, $this->schema);
 		}
 
 		public function update()

@@ -5,15 +5,17 @@
 
 	class QueryBuilder
 	{
-		public static function create(Command &$con, array $schema)
+		public static function create(Command &$con, array $schema): ?array
 		{
 			$table = $schema['info']['table'];
 			$data = QueryBuilder::splitColumns($schema);
 
 			$con
-				->insert($data['columns'], $table)
+				->insert($data['columns'], $table, $schema['info']['pKey'])
 				->vars(...$data['values'])
 				->query();
+
+			return $con->getResults();
 		}
 
 		public static function update(Command &$con, array $schema): void

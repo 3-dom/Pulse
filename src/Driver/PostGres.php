@@ -4,6 +4,7 @@
 	use PgSql\Result;
 	use PgSql\Connection;
 	use ThreeDom\Pulse\Command;
+	use ThreeDom\Pulse\Command\QueryType;
 
 	class PostGres extends Command
 	{
@@ -85,6 +86,16 @@
 
 		public function queryRaw(string &$query, array &$params = []): ?array
 		{
+			switch($this->queryType)
+			{
+				case QueryType::INSERT:
+					if($this->pKey)
+						$query .= "RETURNING *";
+					break;
+				default:
+					break;
+			}
+
 			$result = $this->prepare($query, $params);
 
 			if(!$result)
