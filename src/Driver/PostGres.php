@@ -89,8 +89,7 @@
 			switch($this->queryType)
 			{
 				case QueryType::INSERT:
-					if($this->pKey)
-						$query .= "RETURNING *";
+					$query .= "RETURNING *";
 					break;
 				default:
 					break;

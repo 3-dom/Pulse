@@ -1,6 +1,8 @@
 <?php
 	namespace ThreeDom\Pulse;
 
+	use ThreeDom\Pulse\Command\QueryType;
+
 	/**
 	 * This is the abstract class that all other database drivers us as a template.
 	 * When you modify an abstract function be sure to follow through to the rest of
@@ -31,6 +33,8 @@
 	abstract class Command
 	{
 		protected array $repVar = [];
+
+		protected ?QueryType $queryType = NULL;
 
 		protected string $query = '';
 
@@ -137,6 +141,9 @@
 		public function call(string $procedure, ?string $pKey = NULL): Command
 		{
 			$this->emptyQuery();
+
+			$this->queryType = QueryType::PROCEDURE;
+
 			if($pKey)
 				$this->pKey = $pKey;
 
@@ -156,7 +163,10 @@
 		 */
 		public function update(string $table, array $data, array $vals): Command
 		{
+			$this->emptyQuery();
+
 			$binds = '';
+			$this->queryType = QueryType::UPDATE;
 			$this->query = "UPDATE $table SET ";
 			$this->cols($data);
 
@@ -181,6 +191,8 @@
 		public function insert(array $cols, string $table): Command
 		{
 			$this->emptyQuery();
+
+			$this->queryType = QueryType::INSERT;
 			$this->cols($cols);
 
 			$this->query = "INSERT INTO $table(" . implode(',', $cols) . ') VALUES';
@@ -200,6 +212,9 @@
 		public function select(array $cols, ?string $pKey = NULL): Command
 		{
 			$this->emptyQuery();
+
+			$this->queryType = QueryType::SELECT;
+
 			if($pKey)
 				$this->pKey = $pKey;
 
@@ -326,8 +341,10 @@
 				return;
 
 			$this->query = '';
-			$this->repVar = [];
+			$this->queryType = NULL;
+
 			$this->pKey = '';
+			$this->repVar = [];
 		}
 
 		/**
