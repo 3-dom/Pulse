@@ -42,7 +42,7 @@
 			{
 				if(!$data['fillable'])
 					continue;
-				if($data['value'] == NULL)
+				if($data['value'] === NULL)
 					continue;
 
 				$columns[] = $column;
